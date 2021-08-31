@@ -21,9 +21,12 @@ def main():
     obj = json.loads(data)
     history = "history: "
     if obj['check']['history'] is not None:
+        previous_hist = None
         for hist in obj['check']['history']:
-            dt = datetime.fromtimestamp(hist['executed'])
-            history = history + "status: " + str(hist['status']) + " " + str(dt) + ", "
+            if previous_hist & previous_hist['status'] != hist['status']:
+                dt = datetime.fromtimestamp(hist['executed'])
+                history = history + "status: " + str(hist['status']) + " " + str(dt) + ", \n"
+            previous_hist = hist
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output'] + " " + history 
     else:
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output']
