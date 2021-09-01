@@ -15,6 +15,7 @@ def main():
     # read event
     lines = sys.stdin.readlines()
     data = ""
+    status_readable = ['OK', 'Warning', 'Critical']
     for line in lines:
         data = data.join(line)
     # create json obj from event
@@ -25,7 +26,7 @@ def main():
         for hist in obj['check']['history']:
             if previous_hist & previous_hist['status'] != hist['status']:
                 dt = datetime.fromtimestamp(hist['executed'])
-                history = history + "status: " + str(hist['status']) + " " + str(dt) + ", \n"
+                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", \n"
             previous_hist = hist
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output'] + " " + history 
     else:
