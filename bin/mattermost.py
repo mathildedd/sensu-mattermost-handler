@@ -11,7 +11,6 @@ def main():
     parser = argparse.ArgumentParser(description='push events to mattermost webhook')
     parser.add_argument('-u', type=str, dest='url', required=True, help='the url to mattermost webhook')
     args = parser.parse_args()
-
     # read event
     lines = sys.stdin.readlines()
     data = ""
@@ -24,14 +23,16 @@ def main():
     if obj['check']['history'] is not None:
         previous_hist = None
         for hist in obj['check']['history']:
-            if previous_hist & previous_hist['status'] != hist['status']:
+            if previous_hist is None:
+                dt = datetime.fromtimestamp(hist['executed'])
+                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", \n"
+            elif previous_hist['status'] != hist['status']:
                 dt = datetime.fromtimestamp(hist['executed'])
                 history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", \n"
             previous_hist = hist
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output'] + " " + history 
     else:
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output']
-
     event = {"text": message}
     r = post(args.url, data=json.dumps(event))
 
