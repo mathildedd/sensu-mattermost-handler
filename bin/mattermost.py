@@ -14,22 +14,29 @@ def main():
     # read event
     data = sys.stdin.read()
     status_readable = ['OK', 'Warning', 'Critical']
+    status_icon = [':large_green_circle:', ':large_orange_circle:', ':red_circle:']
     # create json obj from event
     obj = json.loads(data)
-    history = "history: "
+    formatted_history = ""
     if obj['check']['history'] is not None:
         previous_hist = None
+        history = []
         for hist in obj['check']['history']:
             if previous_hist is None:
                 dt = datetime.fromtimestamp(hist['executed'])
-                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", "
+                history.append("status: " + status_readable[hist['status']] + " " + str(dt) + "\n")
             elif previous_hist['status'] != hist['status']:
                 dt = datetime.fromtimestamp(hist['executed'])
-                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", "
+                history.append("status: " + status_readable[hist['status']] + " " + str(dt) + "\n")
             previous_hist = hist
-        message = obj['entity']['system']['hostname'] + ": " + obj['check']['output'] + " " + history 
-    else:
-        message = obj['entity']['system']['hostname'] + ": " + obj['check']['output']
+        if len(history) > 5:
+            formatted_history = "history: \n ```\n" + "\n".join(history[-5:]) + "\n```\n"
+        else:
+            formatted_history = "history: \n ```\n" + "\n".join(history) + "\n```\n"
+    curr_status = hist['status']
+    message = status_icon[curr_status] + " **" + obj['entity']['system']['hostname'] + ": " + status_readable[curr_status] + "**\n\n"
+    message = message + obj['check']['output']
+    message = message + " " + formatted_history
     event = {"text": message}
     r = post(args.url, data=json.dumps(event))
 
