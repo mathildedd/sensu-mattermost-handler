@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import argparse
 import sys
 import json
@@ -12,11 +12,8 @@ def main():
     parser.add_argument('-u', type=str, dest='url', required=True, help='the url to mattermost webhook')
     args = parser.parse_args()
     # read event
-    lines = sys.stdin.readlines()
-    data = ""
+    data = sys.stdin.read()
     status_readable = ['OK', 'Warning', 'Critical']
-    for line in lines:
-        data = data.join(line)
     # create json obj from event
     obj = json.loads(data)
     history = "history: "
@@ -25,10 +22,10 @@ def main():
         for hist in obj['check']['history']:
             if previous_hist is None:
                 dt = datetime.fromtimestamp(hist['executed'])
-                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", \n"
+                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", "
             elif previous_hist['status'] != hist['status']:
                 dt = datetime.fromtimestamp(hist['executed'])
-                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", \n"
+                history = history + "status: " + status_readable[hist['status']] + " " + str(dt) + ", "
             previous_hist = hist
         message = obj['entity']['system']['hostname'] + ": " + obj['check']['output'] + " " + history 
     else:
